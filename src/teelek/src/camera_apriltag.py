@@ -63,13 +63,11 @@ class Camera_apriltag(Node):
         # # 🔥 ตั้ง Manual Focus (ลองปรับค่าดูตามระยะใช้งาน)
         self.cap.set(cv2.CAP_PROP_FOCUS, 500)
 
-        # ===== Adjust camera matrix for 90° CCW rotation =====
         fx = self.camera_matrix[0, 0]
         fy = self.camera_matrix[1, 1]
         cx = self.camera_matrix[0, 2]
         cy = self.camera_matrix[1, 2]
 
-        # original resolution before rotate (ต้องเป็นค่าที่ calibrate จริง)
         orig_w = 640
         orig_h = 480
 
@@ -153,12 +151,17 @@ class Camera_apriltag(Node):
             R, _ = cv2.Rodrigues(rvec)
             R_inv = R.T
             t_inv = -R_inv @ tvec
-            raw_x, raw_y = -t_inv[2][0], t_inv[1][0] 
-            robot_x, robot_y = raw_x - self.cam_offset_x, raw_y - self.cam_offset_y
+            raw_x = -t_inv[2][0]   # depth
+            raw_y = -t_inv[0][0]   # side
+            
+            robot_x = raw_x - self.cam_offset_x
+            robot_y = raw_y - self.cam_offset_y
+            robot_y -= pixel_error_x * raw_x * 0.25
+            
             raw_yaw = math.degrees(math.atan2(R[0, 2], R[2, 2]))
             if raw_yaw > 90: raw_yaw -= 180
             elif raw_yaw < -90: raw_yaw += 180
-            raw_yaw = -raw_yaw
+            raw_yaw = raw_yaw
 
             # Low-pass filter
             if self.first_measurement:

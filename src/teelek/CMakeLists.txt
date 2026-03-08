@@ -66,6 +66,7 @@ install(PROGRAMS
   src/return_to_origin_node.py
   src/tag_follower_node.py
   src/test_mission_node.py
+  src/robot_plotter.py
 
   DESTINATION lib/${PROJECT_NAME}
 )
